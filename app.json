@@ -1,0 +1,17 @@
+{
+  "package_id": "com.dailytext.glasses",
+  "edition": "202601",
+  "name": "Daily Text",
+  "version": "1.0.0",
+  "min_app_version": "2.0.0",
+  "min_sdk_version": "0.0.10",
+  "entrypoint": "index.html",
+  "permissions": [
+    {
+      "name": "network",
+      "desc": "Fetches the daily Bible text from wol.jw.org.",
+      "whitelist": ["https://wol.jw.org"]
+    }
+  ],
+  "supported_languages": ["en"]
+}
