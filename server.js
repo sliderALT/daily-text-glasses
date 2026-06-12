@@ -1,18 +1,10 @@
-// server.js — Daily Text for Even G2 Glasses
-// Fetches daily text from wol.jw.org and serves it to the glasses app
-
 const express = require('express')
-const fs = require('fs')
 const path = require('path')
 
 const PORT = process.env.PORT || 5173
-
 const app = express()
 
-// Serve static files from the dist folder (built Vite app)
 app.use(express.static(path.join(__dirname, 'dist')))
-
-// ── Parse helpers ─────────────────────────────────────────────────────────────
 
 function stripTags(html) {
   return html
@@ -58,22 +50,22 @@ async function fetchDailyText() {
   const item = json.items[0]
   if (!item) throw new Error('No item in response')
 
-  const divider = '-----------------------------------'
   const scripture = parseScripture(item.content)
-  let body = parseBody(item.content)
+  const body = parseBody(item.content)
+  const date = formatDate(now)
+  const divider = '-----------------------------------'
 
-  // Build the full text and truncate to 900 chars (SDK limit is 1000)
-  const full = [formatDate(now), divider, scripture, '', body, '', divider, 'swipe to scroll'].join('\n')
-  const text = full
+  // Build text and enforce 900 char limit
+  // Strip ALL non-ASCII characters first
+  const full = [date, divider, scripture, '', body, '', divider, 'swipe to scroll']
+    .join('\n')
     .replace(/[^\x00-\x7F]/g, '-')
     .replace(/\r/g, '')
-    .slice(0, 900)
 
-  console.log('Scripture:', scripture)
+  const text = full.slice(0, 900)
+  console.log(`Text length: ${text.length} chars, scripture: ${scripture}`)
   return { text }
 }
-
-// ── Cache ─────────────────────────────────────────────────────────────────────
 
 let cache = null
 let cacheDate = ''
@@ -98,21 +90,17 @@ function scheduleRefresh() {
   }, tomorrow.getTime() - now.getTime())
 }
 
-// ── Routes ────────────────────────────────────────────────────────────────────
-
 app.get('/daily-text.json', async (req, res) => {
   if (!cache || cacheDate !== new Date().toDateString()) {
     await refreshCache()
   }
+  console.log(`Serving ${cache.text.length} chars to client`)
   res.json(cache)
 })
 
-// Serve index.html for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'))
 })
-
-// ── Start ─────────────────────────────────────────────────────────────────────
 
 refreshCache().then(() => {
   app.listen(PORT, () => {

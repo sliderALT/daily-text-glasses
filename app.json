@@ -10,7 +10,7 @@
     {
       "name": "network",
       "desc": "Fetches the daily Bible text from wol.jw.org.",
-      "whitelist": ["https://wol.jw.org"]
+      "whitelist": ["https://wol.jw.org", "https://daily-text-glasses-production.up.railway.app"]
     }
   ],
   "supported_languages": ["en"]
